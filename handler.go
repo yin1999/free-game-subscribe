@@ -22,7 +22,7 @@ func newClient() (client *messaging.Client, err error) {
 	return
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	param := r.URL.Query()
 	if accessOrigin != "" {
 		w.Header().Add("Access-Control-Allow-Origin", accessOrigin)
@@ -32,8 +32,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	} else if _, ok = param["unsubscribe"]; ok {
 		unsubscribe(w, r)
 	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("unsupport"))
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("resources not found"))
 	}
 }
 
