@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	firebase "firebase.google.com/go"
-	"firebase.google.com/go/messaging"
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
 	"google.golang.org/api/option"
 )
 
@@ -38,10 +38,10 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", accessOrigin)
 	}
 	if r.Method == http.MethodOptions { // CORS
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
-		w.Header().Add("Access-Control-Allow-Methods", http.MethodPost)
-		w.Header().Add("Access-Control-Max-Age", "86400")
-		w.Header().Add("Content-Length", "0")
+		header := w.Header()
+		header.Add("Access-Control-Allow-Headers", "Content-Type")
+		header.Add("Access-Control-Allow-Methods", http.MethodPost)
+		header.Add("Access-Control-Max-Age", "86400")
 		return
 	}
 	if r.Method == http.MethodPost {
