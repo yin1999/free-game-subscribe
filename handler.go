@@ -17,7 +17,6 @@ type payload struct {
 }
 
 type response struct {
-	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
@@ -46,52 +45,40 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		p := &payload{}
-
-		if err := json.NewDecoder(r.Body).Decode(p); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(p); err != nil || p.Token == "" {
 			writeJSON(w, &response{
-				Status:  "error",
-				Message: "cannot decode request body",
-			})
+				Message: "bad json format or empty token",
+			}, http.StatusBadRequest)
 			return
 		}
 		switch p.Method {
-		case "unsubscribe", "subscribe":
+		case "subscribe", "unsubscribe":
 			subscribeManage(w, p)
 		default:
 			writeJSON(w, &response{
-				Status:  "error",
 				Message: "unsupport method",
-			})
+			}, http.StatusNotAcceptable)
 		}
 	} else {
-		w.WriteHeader(http.StatusNotFound)
-		writeJSON(w, &response{
-			Status:  "error",
-			Message: "resources not found",
-		})
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func writeJSON(w http.ResponseWriter, data interface{}) {
+func writeJSON(w http.ResponseWriter, data interface{}, status ...int) {
 	w.Header().Add("Content-Type", "application/json")
+	if len(status) != 0 {
+		w.WriteHeader(status[0])
+	}
 	encoder := json.NewEncoder(w)
 	encoder.Encode(data)
 }
 
 func subscribeManage(w http.ResponseWriter, p *payload) {
-	if p.Token == "" {
-		writeJSON(w, &response{
-			Status:  "error",
-			Message: "param token is nil",
-		})
-		return
-	}
 	client, err := newClient()
 	if err != nil {
 		writeJSON(w, &response{
-			Status:  "error",
 			Message: "can't create messaging client",
-		})
+		}, http.StatusInternalServerError)
 		return
 	}
 
@@ -100,23 +87,15 @@ func subscribeManage(w http.ResponseWriter, p *payload) {
 		_, err = client.SubscribeToTopic(context.Background(), []string{p.Token}, "all")
 	case "unsubscribe":
 		_, err = client.UnsubscribeFromTopic(context.Background(), []string{p.Token}, "all")
-	default:
-		writeJSON(w, &response{
-			Status:  "error",
-			Message: "unsupport method",
-		})
-		return
 	}
 
 	if err != nil {
 		writeJSON(w, &response{
-			Status:  "error",
 			Message: p.Method + " failed",
-		})
+		}, http.StatusInternalServerError)
 		return
 	}
 	writeJSON(w, &response{
-		Status:  "ok",
 		Message: p.Method + " successfully",
 	})
 }
