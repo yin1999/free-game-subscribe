@@ -1,5 +1,3 @@
-# Env
+# free-game-subscribe
 
-PORT
-firebaseadminsdk
-origin
+Subscribe topic for getting Epic free game list through FCM push.
