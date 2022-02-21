@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -79,6 +80,7 @@ func subscribeManage(w http.ResponseWriter, p *payload) {
 		writeJSON(w, &response{
 			Message: "can't create messaging client",
 		}, http.StatusInternalServerError)
+		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
 
@@ -93,6 +95,7 @@ func subscribeManage(w http.ResponseWriter, p *payload) {
 		writeJSON(w, &response{
 			Message: p.Method + " failed",
 		}, http.StatusInternalServerError)
+		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
 	writeJSON(w, &response{
