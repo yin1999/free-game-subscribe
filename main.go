@@ -9,14 +9,11 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
-var (
-	accessOrigin string
-)
+var accessOrigin = os.Getenv("origin")
 
 func main() {
 	os.Stderr.WriteString("starting server...\n")
 	port := os.Getenv("PORT")
-	accessOrigin = os.Getenv("origin")
 	if port == "" {
 		port = "8080"
 	}
