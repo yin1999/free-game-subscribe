@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
 
-var accessOrigin = os.Getenv("origin")
+var accessOrigins = map[string]struct{}{}
 
 func main() {
 	os.Stderr.WriteString("starting server...\n")
@@ -17,6 +18,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	resolveAccessOrigins()
 
 	handler := http.HandlerFunc(ServeHTTP)
 	h1s := &http.Server{
@@ -27,5 +30,16 @@ func main() {
 	if err := h1s.ListenAndServe(); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
+	}
+}
+
+func resolveAccessOrigins() {
+	env := os.Getenv("origin")
+	if env == "" {
+		return
+	}
+	for _, origin := range strings.Split(env, ",") {
+		origin = strings.TrimSpace(origin)
+		accessOrigins[origin] = struct{}{}
 	}
 }

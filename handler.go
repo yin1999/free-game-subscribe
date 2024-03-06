@@ -33,9 +33,20 @@ func newClient() (client *messaging.Client, err error) {
 	return
 }
 
+func originAllowed(origin string) bool {
+	if _, ok := accessOrigins["*"]; ok {
+		return true
+	}
+	if _, ok := accessOrigins[origin]; ok {
+		return true
+	}
+	return false
+}
+
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if accessOrigin != "" {
-		w.Header().Add("Access-Control-Allow-Origin", accessOrigin)
+	origin := r.Header.Get("Origin")
+	if originAllowed(origin) {
+		w.Header().Add("Access-Control-Allow-Origin", origin)
 	}
 	if r.Method == http.MethodOptions { // CORS
 		header := w.Header()
