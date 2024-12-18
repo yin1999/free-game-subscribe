@@ -76,7 +76,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func writeJSON(w http.ResponseWriter, data interface{}, status ...int) {
+func writeJSON(w http.ResponseWriter, data any, status ...int) {
 	w.Header().Add("Content-Type", "application/json")
 	if len(status) != 0 {
 		w.WriteHeader(status[0])
