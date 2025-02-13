@@ -5,9 +5,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 )
 
 var accessOrigins = map[string]struct{}{}
@@ -21,13 +18,16 @@ func main() {
 
 	resolveAccessOrigins()
 
-	handler := http.HandlerFunc(ServeHTTP)
-	h1s := &http.Server{
-		Addr:    ":" + port,
-		Handler: h2c.NewHandler(handler, &http2.Server{}),
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	protocols.SetUnencryptedHTTP2(true)
+	server := &http.Server{
+		Addr:      ":" + port,
+		Handler:   http.HandlerFunc(ServeHTTP),
+		Protocols: protocols,
 	}
 
-	if err := h1s.ListenAndServe(); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}

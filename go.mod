@@ -1,10 +1,9 @@
 module main
 
-go 1.22
+go 1.24
 
 require (
 	firebase.google.com/go/v4 v4.15.1
-	golang.org/x/net v0.34.0
 	google.golang.org/api v0.211.0
 )
 
@@ -35,6 +34,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.29.0 // indirect
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
