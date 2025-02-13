@@ -18,7 +18,7 @@ func main() {
 
 	resolveAccessOrigins()
 
-	protocols = new(http.Protocols)
+	protocols := new(http.Protocols)
 	protocols.SetHTTP1(true)
 	protocols.SetUnencryptedHTTP2(true)
 	server := &http.Server{
