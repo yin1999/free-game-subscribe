@@ -18,13 +18,12 @@ func main() {
 
 	resolveAccessOrigins()
 
-	handler := http.HandlerFunc(ServeHTTP)
 	protocols = new(http.Protocols)
 	protocols.SetHTTP1(true)
 	protocols.SetUnencryptedHTTP2(true)
 	server := &http.Server{
 		Addr:      ":" + port,
-		Handler:   handler,
+		Handler:   http.HandlerFunc(ServeHTTP),
 		Protocols: protocols,
 	}
 
