@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - use-github-actions
 
 jobs:
   build-and-deploy:
