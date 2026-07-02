@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
+	"sync/atomic"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
@@ -21,15 +23,35 @@ type response struct {
 	Message string `json:"message"`
 }
 
+var (
+	messagingClient   atomic.Pointer[messaging.Client]
+	messagingClientMu sync.Mutex
+)
+
 func newClient() (client *messaging.Client, err error) {
+	client = messagingClient.Load()
+	if client != nil {
+		return
+	}
+	messagingClientMu.Lock()
+	defer messagingClientMu.Unlock()
+
+	if client = messagingClient.Load(); client != nil {
+		return
+	}
+
 	ctx := context.Background()
-	opt := option.WithCredentialsJSON([]byte(os.Getenv("firebaseadminsdk")))
+	opt := option.WithAuthCredentialsJSON(option.ServiceAccount, []byte(os.Getenv("firebaseadminsdk")))
 	var app *firebase.App
 	app, err = firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		return
 	}
 	client, err = app.Messaging(ctx)
+	if err != nil {
+		return
+	}
+	messagingClient.Store(client)
 	return
 }
 
