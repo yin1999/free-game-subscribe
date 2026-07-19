@@ -38,7 +38,7 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           token_format: access_token
-          service_account: github-actions-update-cloudrun@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+          service_account: github-action-update-cloudrun@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
           workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/my-repo
 
       - name: Set up Cloud SDK
