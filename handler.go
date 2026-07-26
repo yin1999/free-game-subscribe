@@ -55,26 +55,34 @@ func newClient() (client *messaging.Client, err error) {
 	return
 }
 
-func originAllowed(origin string) bool {
-	if _, ok := accessOrigins["*"]; ok {
-		return true
+func setCORSHeaders(w http.ResponseWriter, origin string) bool {
+	if origin == "" {
+		return false
 	}
-	if _, ok := accessOrigins[origin]; ok {
-		return true
+
+	_, originAllowed := accessOrigins[origin]
+	_, wildcardAllowed := accessOrigins["*"]
+	if !originAllowed && !wildcardAllowed {
+		return false
 	}
-	return false
+
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Add("Vary", "Origin")
+	return true
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	origin := r.Header.Get("Origin")
-	if originAllowed(origin) {
-		w.Header().Add("Access-Control-Allow-Origin", origin)
-	}
+	corsAllowed := setCORSHeaders(w, r.Header.Get("Origin"))
 	if r.Method == http.MethodOptions { // CORS
+		if !corsAllowed {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		header := w.Header()
-		header.Add("Access-Control-Allow-Headers", "Content-Type")
-		header.Add("Access-Control-Allow-Methods", http.MethodPost)
-		header.Add("Access-Control-Max-Age", "86400")
+		header.Set("Access-Control-Allow-Headers", "Content-Type")
+		header.Set("Access-Control-Allow-Methods", http.MethodPost)
+		header.Set("Access-Control-Max-Age", "86400")
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	if r.Method == http.MethodPost {
@@ -87,7 +95,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		switch p.Method {
 		case "subscribe", "unsubscribe":
-			subscribeManage(w, p)
+			subscribeManage(r.Context(), w, p)
 		default:
 			writeJSON(w, &response{
 				Message: "unsupport method",
@@ -99,7 +107,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeJSON(w http.ResponseWriter, data any, status ...int) {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if len(status) != 0 {
 		w.WriteHeader(status[0])
 	}
@@ -107,7 +115,7 @@ func writeJSON(w http.ResponseWriter, data any, status ...int) {
 	encoder.Encode(data)
 }
 
-func subscribeManage(w http.ResponseWriter, p *payload) {
+func subscribeManage(ctx context.Context, w http.ResponseWriter, p *payload) {
 	client, err := newClient()
 	if err != nil {
 		writeJSON(w, &response{
@@ -119,9 +127,9 @@ func subscribeManage(w http.ResponseWriter, p *payload) {
 
 	switch p.Method {
 	case "subscribe":
-		_, err = client.SubscribeToTopic(context.Background(), []string{p.Token}, "all")
+		_, err = client.SubscribeToTopic(ctx, []string{p.Token}, "all")
 	case "unsubscribe":
-		_, err = client.UnsubscribeFromTopic(context.Background(), []string{p.Token}, "all")
+		_, err = client.UnsubscribeFromTopic(ctx, []string{p.Token}, "all")
 	}
 
 	if err != nil {

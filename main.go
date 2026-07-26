@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var accessOrigins = map[string]struct{}{}
+var accessOrigins map[string]struct{}
 
 func main() {
 	os.Stderr.WriteString("starting server...\n")
@@ -38,7 +38,9 @@ func resolveAccessOrigins() {
 	if env == "" {
 		return
 	}
-	for _, origin := range strings.Split(env, ",") {
+	origins := strings.Split(env, ",")
+	accessOrigins = make(map[string]struct{}, len(origins))
+	for _, origin := range origins {
 		origin = strings.TrimSpace(origin)
 		accessOrigins[origin] = struct{}{}
 	}
